@@ -5,5 +5,5 @@ import (
 )
 
 func DogCirclingAround() {
-	fmt.Println("Dog circling around KURU KURU KURU")
+	fmt.Println("A Dog was circling around KURU KURU KURU.....")
 }
