@@ -1,22 +1,59 @@
 package main
 
 import (
-	"golang.org/x/tour/pic"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 )
 
-func Pic(dx, dy int) [][]uint8 {
-	pic := make([][]uint8, dy)
+type Person struct {
+	FirstName     string
+	LastName      string
+	FavoriteFoods []string
+	Age           int
+}
 
-	for y := range pic {
+var p = Person{
+	FirstName:     "Harumi",
+	LastName:      "Yamashita",
+	FavoriteFoods: []string{"Fruits", "Sashimi", "Ramen"},
+	Age:           25,
+}
 
-		pic[y] = make([]uint8, dx)
-		for x := range pic[y] {
-			pic[y][x] = uint8((x * y))
-		}
+func getHandler(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(p)
+}
+func putHandler(w http.ResponseWriter, r *http.Request) {
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
 	}
-	return pic
+
+	err = json.Unmarshal(body, &p)
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println(p)
+
+}
+
+func personHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		getHandler(w, r)
+	case http.MethodPut:
+		putHandler(w, r)
+	default:
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+	}
 }
 
 func main() {
-	pic.Show(Pic)
+	http.HandleFunc("/person", personHandler)
+	http.ListenAndServe(":8080", nil)
 }
